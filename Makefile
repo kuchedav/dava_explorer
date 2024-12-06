@@ -48,7 +48,7 @@ git: pip_requirements
 	git push origin main
 
 check_project_version:
-	@if grep -q "dev" VERSION; then \
+	@if python -c "import setuptools_scm; print(setuptools_scm.get_version())" | grep -q "dev"; then \
 		echo "Project is running a development version! Cannot be published"; \
 		exit 1; \
 	else \
