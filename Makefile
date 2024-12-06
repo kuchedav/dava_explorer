@@ -47,12 +47,21 @@ git: pip_requirements
 	git commit -m "debug"
 	git push origin main
 
+check_project_version:
+	@if grep -q "dev" VERSION; then \
+		echo "Project is running a development version! Cannot be published"; \
+		exit 1; \
+	else \
+		echo "Project is running a full release version"; \
+	fi
+
 ########################################################################################
 # Package & pypi                                                                       #
 ########################################################################################
 
 package:
 	@echo 'Building package using uv'
+	rm -rf dist
 	python -m uv build
 
 check_credentials_exist:
@@ -65,7 +74,7 @@ publish: package check_credentials_exist
 	@echo 'THIS COMMAND ONLY DEPLOYS TO TEST_PYPI'
 	@echo 'To deploy to PYPI use the command publish_prod'
 
-publish_prod: check_credentials_exist test
+publish_prod: check_credentials_exist test package
 	twine check dist/*
 	twine upload --repository pypi --config-file ~/.pypi dist/*
 
