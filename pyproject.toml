@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+authors = [
+
+{name = "David Kuchelmeister"},
+
+]
+name = "dava_explorer"
+readme = "README.md"
+requires-python = ">=3.13"
+dynamic = ["version"]
+dependencies = [
+  "pandas >= 1.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "tox",
+    "coverage",
+    "flake8",
+    "pre-commit",
+    "mypy",
+    "black",
+    "ruff",
+    "daves_utilities",
+    "setuptools_scm",
+    "twine",
+    "uv",
+    "pre-commit",
+    "pre-commit-hooks",
+    "reorder-python-imports",
+]
+
+[tool.coverage.run]
+source_pkgs = [
+  "dava_explorer",
+]
+
+[tool.mypy]
+files = "src/dava_explorer"
+ignore_missing_imports = true
+python_version = "3.13"
+
+[tool.pytest.ini_options]
+testpaths = [
+  "tests",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools_scm]
+write_to = "src/dava_explorer/_version.py"
+version_scheme = "python-simplified-semver"
