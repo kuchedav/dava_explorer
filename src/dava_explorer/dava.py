@@ -13,8 +13,54 @@ def analyze_table(df):
 
     app = Dash(__name__, external_stylesheets=external_stylesheets)
 
+    def get__numeric_chart(df, column):
+        nbins = 10
+        return dcc.Graph(
+            id=column,
+            figure=px.histogram(
+                df, x=column, nbins=nbins, title=f"Histogram of {column}"
+            ),
+        )
+
+    # Define a dictionary that maps Polars data types to specific outputs
+    output_dict = {
+        # Numeric
+        pl.Int8: get__numeric_chart,
+        pl.Int16: get__numeric_chart,
+        pl.Int32: get__numeric_chart,
+        pl.Int64: get__numeric_chart,
+        pl.UInt8: get__numeric_chart,
+        pl.UInt16: get__numeric_chart,
+        pl.UInt32: get__numeric_chart,
+        pl.UInt64: get__numeric_chart,
+        pl.Float32: get__numeric_chart,
+        pl.Float64: get__numeric_chart,
+        # # Categorial
+        # pl.Boolean: "This is a boolean column.",
+        # pl.Utf8: "This is a UTF-8 encoded string column.",
+        # pl.Categorical: "This is a categorical column.",
+        # # Time
+        # pl.Date: "This is a date column.",
+        # pl.Datetime: "This is a datetime column.",
+        # pl.Duration: "This is a duration column.",
+        # pl.Time: "This is a time column.",
+        # # Not supported
+        # pl.List: "Lists are not supported",
+        # pl.Struct: "Struct is not supported",
+    }
+
+    # get the plots for the columns
+    plot_list = [
+        output_dict[dtype](df, column)
+        for dtype, column in zip(df.dtypes, df.columns)
+        if dtype in output_dict
+    ]
+
     app.layout = html.Div(
         [
+            ############################################################################
+            # Example from https://dash.plotly.com/interactive-graphing
+            ############################################################################
             html.Div(
                 [
                     html.Div(
@@ -89,6 +135,8 @@ def analyze_table(df):
                 ),
                 style={"width": "49%", "padding": "0px 20px 20px 20px"},
             ),
+            ############################################################################
+            html.Div(plot_list),
         ]
     )
 
@@ -180,3 +228,11 @@ def analyze_table(df):
         return create_time_series(dff, axis_type, yaxis_column_name)
 
     app.run(debug=True)
+
+
+if __name__ == "__main__":
+    import polars as pl
+
+    df = pl.read_csv("./src/dava_explorer/country_indicators.csv")
+
+    analyze_table(df)
