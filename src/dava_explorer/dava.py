@@ -14,49 +14,6 @@ def analyze_table(df):
 
     app = Dash(__name__, external_stylesheets=external_stylesheets)
 
-    def get__numeric_chart(df, column):
-        nbins = 10
-        fig = px.histogram(df, x=column, nbins=nbins, title=f"Histogram of {column}")
-        fig.update_layout(bargap=0.1)
-        return dcc.Graph(
-            id=column,
-            figure=fig,
-        )
-
-    # Define a dictionary that maps Polars data types to specific outputs
-    output_dict = {
-        # Numeric
-        pl.Int8: get__numeric_chart,
-        pl.Int16: get__numeric_chart,
-        pl.Int32: get__numeric_chart,
-        pl.Int64: get__numeric_chart,
-        pl.UInt8: get__numeric_chart,
-        pl.UInt16: get__numeric_chart,
-        pl.UInt32: get__numeric_chart,
-        pl.UInt64: get__numeric_chart,
-        pl.Float32: get__numeric_chart,
-        pl.Float64: get__numeric_chart,
-        # # Categorial
-        # pl.Boolean: "This is a boolean column.",
-        # pl.Utf8: "This is a UTF-8 encoded string column.",
-        # pl.Categorical: "This is a categorical column.",
-        # # Time
-        # pl.Date: "This is a date column.",
-        # pl.Datetime: "This is a datetime column.",
-        # pl.Duration: "This is a duration column.",
-        # pl.Time: "This is a time column.",
-        # # Not supported
-        # pl.List: "Lists are not supported",
-        # pl.Struct: "Struct is not supported",
-    }
-
-    # get the plots for the columns
-    plot_list = [
-        output_dict[dtype](df, column)
-        for dtype, column in zip(df.dtypes, df.columns)
-        if dtype in output_dict
-    ]
-
     df = df.to_pandas()
 
     app.layout = html.Div(
@@ -139,7 +96,8 @@ def analyze_table(df):
                 style={"width": "49%", "padding": "0px 20px 20px 20px"},
             ),
             ############################################################################
-            html.Div(plot_list),
+            html.Div(dcc.Graph(id="Value-histogram")),
+            html.Div(dcc.Graph(id="Year-histogram")),
         ]
     )
 
@@ -229,6 +187,26 @@ def analyze_table(df):
         dff = df[df["Country Name"] == hoverData["points"][0]["customdata"]]
         dff = dff[dff["Indicator Name"] == yaxis_column_name]
         return create_time_series(dff, axis_type, yaxis_column_name)
+
+    @callback(
+        Output("Value-histogram", "figure"),
+        Input("Year-histogram", "figure"),
+    )
+    def numeric_chart_1():
+        nbins = 10
+        fig = px.histogram(df, x="Value", nbins=nbins, title="Histogram of Value")
+        fig.update_layout(bargap=0.1)
+        return dcc.Graph(figure=fig)
+
+    @callback(
+        Output("Year-histogram", "figure"),
+        Input("Value-histogram", "figure"),
+    )
+    def numeric_chart_2():
+        nbins = 10
+        fig = px.histogram(df, x="Year", nbins=nbins, title="Histogram of Year")
+        fig.update_layout(bargap=0.1)
+        return dcc.Graph(figure=fig)
 
     app.run(debug=True)
 
