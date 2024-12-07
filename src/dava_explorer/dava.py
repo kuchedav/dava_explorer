@@ -1,4 +1,5 @@
 import plotly.express as px
+import polars as pl
 from dash import callback
 from dash import Dash
 from dash import dcc
@@ -15,11 +16,11 @@ def analyze_table(df):
 
     def get__numeric_chart(df, column):
         nbins = 10
+        fig = px.histogram(df, x=column, nbins=nbins, title=f"Histogram of {column}")
+        fig.update_layout(bargap=0.1)
         return dcc.Graph(
             id=column,
-            figure=px.histogram(
-                df, x=column, nbins=nbins, title=f"Histogram of {column}"
-            ),
+            figure=fig,
         )
 
     # Define a dictionary that maps Polars data types to specific outputs
@@ -55,6 +56,8 @@ def analyze_table(df):
         for dtype, column in zip(df.dtypes, df.columns)
         if dtype in output_dict
     ]
+
+    df = df.to_pandas()
 
     app.layout = html.Div(
         [
@@ -135,6 +138,8 @@ def analyze_table(df):
                 ),
                 style={"width": "49%", "padding": "0px 20px 20px 20px"},
             ),
+            ############################################################################
+            html.Div(plot_list),
         ]
     )
 
@@ -229,7 +234,6 @@ def analyze_table(df):
 
 
 if __name__ == "__main__":
-    import polars as pl
 
     df = pl.read_csv("./src/dava_explorer/country_indicators.csv")
 
